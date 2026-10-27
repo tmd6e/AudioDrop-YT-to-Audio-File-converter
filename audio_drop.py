@@ -10,6 +10,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from urllib.parse import urlparse
 from youtube_search import SearchDialog
+from runtime_paths import tool_path, runtime_options
 
 BASE = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
 FORMATS = {'MP3': 'mp3', 'WAV': 'wav', 'FLAC': 'flac', 'M4A': 'm4a',
@@ -44,8 +45,7 @@ def download_options(folder, fmt, name=''):
         'paths': {'home': str(folder)}, 'outtmpl': filename_template(name),
         'nocolor': True, 'postprocessors': [{'key': 'FFmpegExtractAudio',
             'preferredcodec': FORMATS[fmt], 'preferredquality': '0'}]}
-    if shutil.which('node'):
-        options['js_runtimes'] = {'node': {}}
+    options.update(runtime_options())
     return options
 
 
@@ -157,8 +157,8 @@ class AudioDrop(tk.Tk):
         except ValueError as exc:
             messagebox.showerror('Check the filename', str(exc))
             return
-        if not shutil.which('ffmpeg') or not shutil.which('ffprobe'):
-            messagebox.showerror('FFmpeg required', 'Install FFmpeg and add its bin folder to PATH, then restart AudioDrop.')
+        if not all(tool_path(name) for name in ('ffmpeg', 'ffprobe', 'node')):
+            messagebox.showerror('App files missing', 'Please reinstall AudioDrop, or extract the entire portable ZIP into a folder and try again.')
             return
         try:
             folder = Path(self.folder.get()).expanduser().resolve()
@@ -231,6 +231,17 @@ class AudioDrop(tk.Tk):
 
 
 if __name__ == '__main__':
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, 'w')
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, 'w')
+    if '--self-test' in sys.argv:
+        from bundle_check import check
+        try:
+            check(sys.argv[sys.argv.index('--self-test') + 1])
+        except Exception as exc:
+            sys.exit(1)
+        sys.exit(0)
     if os.name == 'nt':
         import ctypes
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('AudioDrop.Desktop')

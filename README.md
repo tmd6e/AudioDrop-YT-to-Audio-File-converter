@@ -1,78 +1,76 @@
 # AudioDrop
 
-A small Windows desktop app that turns a YouTube video URL into audio. Paste a link, choose a format and destination folder, then click **Download audio**.
+**Find a YouTube video and save its audio to your computer.**
 
-Click **Search YouTube** to find a video by title, artist, or keywords without leaving the app. Select one of up to ten results and click **Use selected video** (or double-click it) to fill the URL automatically. Search shows the channel and duration, runs in the background, and does not download media. No API key is needed.
+AudioDrop is a free Windows app with built-in video search, audio format choices, and a folder picker. Everything it needs is included. You do **not** need to install Python, FFmpeg, or Node.js.
 
-Use the optional **Filename** field to name your download. Leave it blank to use the video title and ID. The selected format supplies the extension automatically. Existing files are not overwritten; choose another name to keep a separate copy.
+## Get AudioDrop
 
-Supports MP3, WAV, FLAC, M4A, AAC, OGG/Vorbis, Opus, and ALAC. Includes progress messages, a folder browser, saved preferences, and an Open download folder button. Playlist URLs download a single video.
+**[Open the latest download page](https://github.com/tmd6e/AudioDrop-YT-to-Audio-File-converter/releases/latest)**
 
-## Run on Windows
+For 64-bit Windows 10 and Windows 11. An internet connection is needed to search and download videos.
 
-1. Install FFmpeg (including ffprobe) and Node.js, and add their executable folders to PATH. Restart the app after installation.
-2. Download `AudioDrop.exe` from a GitHub release and double-click it. Python is included in the executable; FFmpeg and Node.js are separate prerequisites.
-3. Paste a YouTube URL, choose a format, browse to a folder, and download.
+### Recommended: use the installer
 
-Downloads default to `%USERPROFILE%\Downloads\AudioDrop`. Preferences are stored in `%LOCALAPPDATA%\AudioDrop\settings.json`. WAV and FLAC cannot restore quality missing from the original audio. Private, age-restricted, or blocked videos may fail; the app shows the downloader error.
+1. On the download page, open **Assets** if the download list is collapsed.
+2. Download the file starting with **AudioDrop-Setup** and ending in **.exe**.
+3. Open that file and follow the setup steps. The default options are fine.
+4. Open **AudioDrop** from your desktop or the Windows Start menu.
 
-### Shortcuts and pinning
+Setup installs the app for your Windows account without administrator permission. It creates a Start menu entry and offers a desktop shortcut. You do not need any of the **Source code** downloads.
 
-Extract `AudioDrop-Windows.zip` into a permanent folder, then double-click `Create shortcuts.bat` to add Desktop and Start menu shortcuts. Launch AudioDrop and right-click its taskbar icon → **Pin to taskbar**, or right-click its Start menu entry to pin to Start. The app and shortcuts use the AudioDrop icon. Keep the extracted folder in place so shortcuts continue to work. The shortcut installer also works from this source folder after building the executable.
+### Alternative: run without installing
 
-The original icon is in `assets/`. To regenerate it, install Pillow and run `python make_icon.py`.
+1. Download **AudioDrop-Windows.zip** from the same page.
+2. Right-click the ZIP and choose **Extract All**.
+3. Open the extracted **AudioDrop** folder, then open **AudioDrop.exe**.
 
-## Run from source
+Keep all files in that folder together, including `_internal`. Do not run from inside the ZIP or move only the EXE out of the folder. For optional Desktop and Start menu shortcuts, double-click **Create shortcuts.bat** in the extracted folder.
 
-Install Python 3.10 or newer (3.12 recommended), FFmpeg, and Node.js. Double-click `Launch AudioDrop.bat`, or run:
+## Save your first audio file
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python -m pip install -r requirements.txt
-.\.venv\Scripts\python audio_drop.py
-```
+1. **Choose a video.** Paste a YouTube link into the URL box, or click **Search YouTube**, enter a title or artist, choose a result, and click **Use selected video**.
+2. **Choose a format.** Pick **MP3** if you are unsure; it works with most music players.
+3. **Choose a folder.** Click **Browse…** to pick where to save the file. The default is the **AudioDrop** folder inside your Windows **Downloads** folder.
+4. **Name it if you want.** Enter a filename, or leave it blank to use the video's title. The app adds the file extension.
+5. Click **Download audio** and wait for the saved message. Click **Open download folder** to find your file.
 
-`Update downloader.bat` updates a source installation when YouTube changes. Executable users need a rebuilt release. After updating dependencies, test and update the version pin before releasing.
+The app remembers your folder and format. Selecting a search result fills the URL; it does not download until you click the download button. Playlist links download one video.
 
-## Build and test
+## Keep it handy
 
-On Windows, in an activated Python virtual environment:
+- **Taskbar:** open AudioDrop, right-click its taskbar icon, and choose **Pin to taskbar**.
+- **Start menu:** find AudioDrop in Start, right-click it, and choose **Pin to Start**.
+- **Desktop:** keep the desktop shortcut option selected during setup.
 
-```powershell
-./build.ps1
-python -m unittest discover -s tests -v
-```
+## Which format should I choose?
 
-The executable is written to `dist/AudioDrop.exe`. Before publishing, launch it on Windows, select a folder, download a video you can access, and verify playback. Unit tests mock network downloads; they do not verify live YouTube availability.
+| Format | Good for |
+| --- | --- |
+| MP3 | Everyday listening and most players |
+| M4A or AAC | Players and devices that support AAC audio |
+| Opus or OGG | Players that support these formats |
+| WAV | Audio editing; files can be large |
+| FLAC or ALAC | Lossless storage of the converted audio |
 
-## Publish on GitHub
+WAV, FLAC, and ALAC cannot improve the quality of the original YouTube audio.
 
-Create an empty GitHub repository, then run these commands from this folder, substituting your repository URL:
+## Updating or removing AudioDrop
 
-```powershell
-git init -b main
-git add .
-git commit -m "Initial AudioDrop app"
-git remote add origin https://github.com/YOUR-ACCOUNT/AudioDrop.git
-git push -u origin main
-```
+**Installed version:** download the newer setup file and run it. To uninstall, open Windows **Settings → Apps → Installed apps**, find **AudioDrop**, and choose **Uninstall**. Your downloaded audio is kept.
 
-The Windows workflow builds an executable on pushes to main, pull requests, and manual runs. Download it from the workflow's **AudioDrop-Windows** artifact.
+**Portable version:** extract a newer ZIP to a new folder and open it there. Recreate shortcuts if you change its location. To remove it, delete the extracted app folder. Your downloaded audio is kept.
 
-To prepare a release:
+## If something goes wrong
 
-```powershell
-git tag v1.0.0
-git push origin v1.0.0
-```
+- **“App files missing”:** reinstall, or extract the entire portable ZIP again. Keep `_internal` beside `AudioDrop.exe`.
+- **Search or download fails:** check your connection and try again. Some private, age-restricted, deleted, or region-blocked videos are unavailable. The message area shows details.
+- **A filename already exists:** choose another name to keep a separate copy. Existing audio is not overwritten.
+- **Downloads stopped working:** check the release page for a newer version; YouTube changes sometimes require app updates.
+- **Windows shows a publisher warning:** AudioDrop is currently unsigned. Verify that the file came from this repository's Releases page. Do not disable Windows security protection.
 
-The workflow creates a **draft** GitHub release with the executable attached. Test the artifact and publish the draft in GitHub. This is a desktop app distributed through GitHub Releases; it is not a GitHub Pages website.
+Still stuck? [Report a problem](https://github.com/tmd6e/AudioDrop-YT-to-Audio-File-converter/issues) and include the message shown in the app.
 
-## Dependencies
+## For developers
 
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) downloads and extracts audio.
-- [FFmpeg](https://ffmpeg.org/) converts audio.
-- [Node.js](https://nodejs.org/) runs YouTube JavaScript challenges.
-- [PyInstaller](https://pyinstaller.org/) packages the Windows application.
-
-The application uses the GPL v2 license selected for this repository; see LICENSE. Third-party components retain their respective licenses.
+See [DEVELOPING.md](DEVELOPING.md) for source setup, tests, builds, and release steps. The app uses the repository's GPL v2 license. Bundled components retain their own licenses; see [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).

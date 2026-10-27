@@ -8,3 +8,4 @@ Downloads/
 settings.json
 .env
 .env.*
+vendor/

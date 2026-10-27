@@ -23,11 +23,14 @@ jobs:
         run: ./build.ps1
       - name: Run tests
         run: python -m unittest discover -s tests -v
+      - name: Test installation and uninstall
+        shell: pwsh
+        run: ./test_installer.ps1
       - uses: actions/upload-artifact@v4
         with:
           name: AudioDrop-Windows
           path: |
-            dist/AudioDrop.exe
+            dist/AudioDrop-Setup-*.exe
             dist/AudioDrop-Windows.zip
           if-no-files-found: error
   release:
@@ -47,4 +50,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
-        run: gh release create "$env:RELEASE_TAG" dist/AudioDrop.exe dist/AudioDrop-Windows.zip --verify-tag --draft --title "AudioDrop $env:RELEASE_TAG" --notes "Windows desktop app. Requires FFmpeg and Node.js on PATH. Extract the ZIP to a permanent folder and run Create shortcuts.bat for Desktop and Start menu shortcuts."
+        run: gh release create "$env:RELEASE_TAG" dist/AudioDrop-Setup-*.exe dist/AudioDrop-Windows.zip --verify-tag --draft --title "AudioDrop $env:RELEASE_TAG" --notes "Download AudioDrop-Setup for guided installation, or extract the portable ZIP and run AudioDrop.exe. Python, FFmpeg, and Node.js are included. No additional software or administrator permission is required."

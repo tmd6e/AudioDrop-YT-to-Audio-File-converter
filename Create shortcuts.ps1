@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $appPath = Join-Path $PSScriptRoot 'AudioDrop.exe'
 if (-not (Test-Path -LiteralPath $appPath)) {
-    $appPath = Join-Path $PSScriptRoot 'dist\AudioDrop.exe'
+    $appPath = Join-Path $PSScriptRoot 'dist\AudioDrop\AudioDrop.exe'
 }
 if (-not (Test-Path -LiteralPath $appPath)) {
     throw 'AudioDrop.exe is missing. Extract the release ZIP or build the app first.'

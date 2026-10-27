@@ -1,0 +1,24 @@
+AudioDrop includes independently licensed software. The AudioDrop application
+license does not replace these components' licenses.
+
+FFmpeg and ffprobe 9.0.2, Gyan essentials Windows x64 build (GPL v3).
+Distribution: https://github.com/GyanD/codexffmpeg/releases/tag/9.0.2
+FFmpeg source revision: https://github.com/FFmpeg/FFmpeg/commit/946fcce07b
+Build information and external libraries: https://www.gyan.dev/ffmpeg/builds/
+The upstream LICENSE and README are included in _internal/licenses/FFmpeg.
+FFmpeg runs as a separate command-line program.
+
+Node.js 22.23.4 (MIT and included third-party licenses).
+Source: https://nodejs.org/dist/v22.23.4/node-v22.23.4.tar.xz
+The upstream LICENSE, including dependency notices, is included in
+_internal/licenses/Node.js. Node.js runs as a separate program.
+
+Python, Tcl/Tk, yt-dlp, yt-dlp-ejs and the Python packages included by
+PyInstaller retain their respective licenses. In particular, Mutagen is
+GPL-2.0-or-later; yt-dlp is Unlicense; requests is Apache-2.0; certifi is
+MPL-2.0. See requirements.txt and requirements-build.txt for dependencies.
+
+AudioDrop source and build instructions:
+https://github.com/tmd6e/AudioDrop-YT-to-Audio-File-converter
+Runtime archive versions and SHA-256 values are recorded in
+_internal/manifest.json and bundle_tools.py.

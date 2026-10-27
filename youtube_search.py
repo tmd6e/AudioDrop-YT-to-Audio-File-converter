@@ -4,6 +4,7 @@ import re
 import threading
 import tkinter as tk
 from tkinter import ttk
+from runtime_paths import runtime_options
 
 
 def search_videos(query):
@@ -11,7 +12,7 @@ def search_videos(query):
     query = query.strip()
     if not query:
         return []
-    with YoutubeDL({'quiet': True, 'no_warnings': True, 'extract_flat': True,
+    with YoutubeDL({**runtime_options(), 'quiet': True, 'no_warnings': True, 'extract_flat': True,
                     'skip_download': True, 'socket_timeout': 20, 'retries': 1,
                     'extractor_retries': 1}) as downloader:
         data = downloader.extract_info('ytsearch10:' + query, download=False)
