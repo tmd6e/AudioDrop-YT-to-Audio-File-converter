@@ -52,6 +52,9 @@ def download_options(folder, fmt, name=''):
 class AudioDrop(tk.Tk):
     def __init__(self):
         super().__init__()
+        icon = Path(__file__).resolve().parent / 'assets' / 'audiodrop.ico'
+        if icon.exists():
+            self.iconbitmap(str(icon))
         self.title('AudioDrop • YouTube to audio')
         self.geometry('720x660')
         self.minsize(640, 620)
@@ -228,4 +231,7 @@ class AudioDrop(tk.Tk):
 
 
 if __name__ == '__main__':
+    if os.name == 'nt':
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('AudioDrop.Desktop')
     AudioDrop().mainloop()

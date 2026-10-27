@@ -26,7 +26,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: AudioDrop-Windows
-          path: dist/AudioDrop.exe
+          path: |
+            dist/AudioDrop.exe
+            dist/AudioDrop-Windows.zip
           if-no-files-found: error
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -45,4 +47,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
-        run: gh release create "$env:RELEASE_TAG" dist/AudioDrop.exe --verify-tag --draft --title "AudioDrop $env:RELEASE_TAG" --notes "Windows desktop app. Requires FFmpeg and Node.js on PATH. See the repository README for setup."
+        run: gh release create "$env:RELEASE_TAG" dist/AudioDrop.exe dist/AudioDrop-Windows.zip --verify-tag --draft --title "AudioDrop $env:RELEASE_TAG" --notes "Windows desktop app. Requires FFmpeg and Node.js on PATH. Extract the ZIP to a permanent folder and run Create shortcuts.bat for Desktop and Start menu shortcuts."

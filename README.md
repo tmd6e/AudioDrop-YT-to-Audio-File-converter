@@ -16,6 +16,12 @@ Supports MP3, WAV, FLAC, M4A, AAC, OGG/Vorbis, Opus, and ALAC. Includes progress
 
 Downloads default to `%USERPROFILE%\Downloads\AudioDrop`. Preferences are stored in `%LOCALAPPDATA%\AudioDrop\settings.json`. WAV and FLAC cannot restore quality missing from the original audio. Private, age-restricted, or blocked videos may fail; the app shows the downloader error.
 
+### Shortcuts and pinning
+
+Extract `AudioDrop-Windows.zip` into a permanent folder, then double-click `Create shortcuts.bat` to add Desktop and Start menu shortcuts. Launch AudioDrop and right-click its taskbar icon → **Pin to taskbar**, or right-click its Start menu entry to pin to Start. The app and shortcuts use the AudioDrop icon. Keep the extracted folder in place so shortcuts continue to work. The shortcut installer also works from this source folder after building the executable.
+
+The original icon is in `assets/`. To regenerate it, install Pillow and run `python make_icon.py`.
+
 ## Run from source
 
 Install Python 3.10 or newer (3.12 recommended), FFmpeg, and Node.js. Double-click `Launch AudioDrop.bat`, or run:
