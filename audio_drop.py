@@ -9,6 +9,7 @@ import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from urllib.parse import urlparse
+from youtube_search import SearchDialog
 
 BASE = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
 FORMATS = {'MP3': 'mp3', 'WAV': 'wav', 'FLAC': 'flac', 'M4A': 'm4a',
@@ -85,8 +86,13 @@ class AudioDrop(tk.Tk):
         ttk.Label(outer, text='AudioDrop', font=('Segoe UI', 27, 'bold')).grid(row=0, column=0, sticky='w')
         ttk.Label(outer, text='A link. A format. Your audio.', foreground='#8fa7c5').grid(row=1, column=0, sticky='w', pady=(2, 24))
         ttk.Label(outer, text='YOUTUBE URL').grid(row=2, column=0, sticky='w')
-        self.url_entry = ttk.Entry(outer, textvariable=self.url)
-        self.url_entry.grid(row=3, column=0, sticky='ew', pady=(7, 17))
+        url_row = ttk.Frame(outer)
+        url_row.grid(row=3, column=0, sticky='ew', pady=(7, 17))
+        url_row.columnconfigure(0, weight=1)
+        self.url_entry = ttk.Entry(url_row, textvariable=self.url)
+        self.url_entry.grid(row=0, column=0, sticky='ew', padx=(0, 8))
+        self.search_button = ttk.Button(url_row, text='Search YouTube', command=self.open_search)
+        self.search_button.grid(row=0, column=1)
         options = ttk.Frame(outer)
         options.grid(row=4, column=0, sticky='ew')
         options.columnconfigure(1, weight=1)
@@ -122,6 +128,10 @@ class AudioDrop(tk.Tk):
         if selected:
             self.folder.set(selected)
 
+    def open_search(self):
+        if not self.busy:
+            SearchDialog(self, self.url.set)
+
     def open_folder(self):
         folder = Path(self.folder.get()).expanduser()
         if folder.is_dir():
@@ -156,7 +166,7 @@ class AudioDrop(tk.Tk):
             messagebox.showerror('Cannot use folder', str(exc))
             return
         self.busy = True
-        for widget in (self.download, self.url_entry, self.path_entry, self.browse_button, self.format_box, self.name_entry):
+        for widget in (self.download, self.url_entry, self.path_entry, self.browse_button, self.format_box, self.name_entry, self.search_button):
             widget.configure(state='disabled')
         self.log.configure(state='normal')
         self.log.delete('1.0', 'end')
@@ -201,7 +211,7 @@ class AudioDrop(tk.Tk):
                 else:
                     self.busy = False
                     self.progress.stop()
-                    for widget in (self.download, self.url_entry, self.path_entry, self.browse_button, self.name_entry):
+                    for widget in (self.download, self.url_entry, self.path_entry, self.browse_button, self.name_entry, self.search_button):
                         widget.configure(state='normal')
                     self.format_box.configure(state='readonly')
                     self.status.set('Saved! Open the download folder to find your audio.' if value == 0 else

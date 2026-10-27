@@ -2,6 +2,8 @@
 
 A small Windows desktop app that turns a YouTube video URL into audio. Paste a link, choose a format and destination folder, then click **Download audio**.
 
+Click **Search YouTube** to find a video by title, artist, or keywords without leaving the app. Select one of up to ten results and click **Use selected video** (or double-click it) to fill the URL automatically. Search shows the channel and duration, runs in the background, and does not download media. No API key is needed.
+
 Use the optional **Filename** field to name your download. Leave it blank to use the video title and ID. The selected format supplies the extension automatically. Existing files are not overwritten; choose another name to keep a separate copy.
 
 Supports MP3, WAV, FLAC, M4A, AAC, OGG/Vorbis, Opus, and ALAC. Includes progress messages, a folder browser, saved preferences, and an Open download folder button. Playlist URLs download a single video.
@@ -67,4 +69,4 @@ The workflow creates a **draft** GitHub release with the executable attached. Te
 - [Node.js](https://nodejs.org/) runs YouTube JavaScript challenges.
 - [PyInstaller](https://pyinstaller.org/) packages the Windows application.
 
-Third-party components retain their respective licenses. Choose a license for your own application before inviting reuse or contributions.
+The application uses the GPL v2 license selected for this repository; see LICENSE. Third-party components retain their respective licenses.
