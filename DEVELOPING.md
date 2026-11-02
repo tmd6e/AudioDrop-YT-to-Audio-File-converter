@@ -14,7 +14,7 @@ python -m unittest discover -s tests -v
 
 `build.ps1` builds a folder distribution, checks the packaged Node.js, FFmpeg and ffprobe with an empty PATH, converts a generated sample into all eight supported audio formats, and produces a portable ZIP and installer. Set `AUDIODROP_ISCC` to a custom Inno Setup compiler path, or pass `-SkipInstaller` for a ZIP-only development build.
 
-Outputs: `dist/AudioDrop-Setup-1.1.0.exe` and `dist/AudioDrop-Windows.zip`. The EXE inside the app folder requires its adjacent `_internal` directory. Do not publish that EXE alone.
+Outputs: `dist/AudioDrop-Setup-1.2.0.exe` and `dist/AudioDrop-Windows.zip`. The EXE inside the app folder requires its adjacent `_internal` directory. Do not publish that EXE alone.
 
 The Windows GitHub workflow builds, tests, and uploads both distributable files. Version tags (`v*`) create draft releases. Review the installer and portable artifact before publishing a draft. Update `installer.iss` and release notes when changing versions. Runtime updates require updating the URLs and SHA-256 digests in `bundle_tools.py`, rebuilding, and rerunning checks.
 

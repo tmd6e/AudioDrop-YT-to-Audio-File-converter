@@ -29,13 +29,23 @@ Keep all files in that folder together, including `_internal`. Do not run from i
 
 ## Save your first audio file
 
-1. **Choose a video.** Paste a YouTube link into the URL box, or click **Search YouTube**, enter a title or artist, choose a result, and click **Use selected video**.
+1. **Choose a video.** Paste a YouTube link into the URL box, or click **Search YouTube**, enter a title or artist, choose a result, and click **Add selected to queue**.
 2. **Choose a format.** Pick **MP3** if you are unsure; it works with most music players.
 3. **Choose a folder.** Click **Browse…** to pick where to save the file. The default is the **AudioDrop** folder inside your Windows **Downloads** folder.
 4. **Name it if you want.** Enter a filename, or leave it blank to use the video's title. The app adds the file extension.
 5. Click **Download audio** and wait for the saved message. Click **Open download folder** to find your file.
 
-The app remembers your folder and format. Selecting a search result fills the URL; it does not download until you click the download button. Playlist links download one video.
+The app remembers your folder and format. Adding search results does not download anything until you click the download button. Playlist links download one video.
+
+### Download several videos at once
+
+1. Click **Search YouTube** and search for your videos.
+2. Hold **Ctrl** while clicking individual results, hold **Shift** to select a range, or click **Select all**.
+3. Click **Add selected to queue**. You can search again to add more videos; duplicate results are only added once.
+4. Review the queue. Use **Remove selected** to remove highlighted videos, or **Clear queue** to start over or return to pasting a single URL.
+5. Choose your format and destination with **Browse…**, then click **Download N videos**.
+
+Videos download one at a time into the same selected folder. Batches use each video's title and ID as its filename; the custom filename field is available for single downloads only. If a video fails, the remaining videos still download. The final message reports how many completed or failed, and the log identifies each video.
 
 ## Keep it handy
 

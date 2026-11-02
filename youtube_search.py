@@ -53,7 +53,7 @@ class SearchDialog(tk.Toplevel):
         self.search_button = ttk.Button(frame, text='Search', command=self.start_search)
         self.search_button.grid(row=0, column=1)
         ttk.Label(frame, textvariable=self.status, wraplength=680).grid(row=1, column=0, columnspan=2, sticky='w', pady=12)
-        self.table = ttk.Treeview(frame, columns=('title', 'channel', 'duration'), show='headings', selectmode='browse')
+        self.table = ttk.Treeview(frame, columns=('title', 'channel', 'duration'), show='headings', selectmode='extended')
         for key, label, width in [('title', 'Video', 360), ('channel', 'Channel', 180), ('duration', 'Length', 65)]:
             self.table.heading(key, text=label)
             self.table.column(key, width=width, minwidth=50, stretch=key != 'duration')
@@ -64,7 +64,8 @@ class SearchDialog(tk.Toplevel):
         self.table.bind('<<TreeviewSelect>>', self.selection_changed)
         self.table.bind('<Double-1>', lambda event: self.use_selected())
         self.table.bind('<Return>', lambda event: self.use_selected())
-        self.use_button = ttk.Button(frame, text='Use selected video', command=self.use_selected, state='disabled')
+        ttk.Button(frame, text='Select all', command=self.select_all).grid(row=3, column=0, sticky='w', pady=(14, 0))
+        self.use_button = ttk.Button(frame, text='Add selected to queue', command=self.use_selected, state='disabled')
         self.use_button.grid(row=3, column=0, columnspan=2, sticky='e', pady=(14, 0))
         self.protocol('WM_DELETE_WINDOW', self.close)
         self.bind('<Escape>', lambda event: self.close())
@@ -73,6 +74,11 @@ class SearchDialog(tk.Toplevel):
 
     def selection_changed(self, event=None):
         self.use_button.configure(state='normal' if self.table.selection() and not self.searching else 'disabled')
+        self.use_button.configure(text=f'Add selected to queue ({len(self.table.selection())})')
+
+    def select_all(self):
+        if not self.searching:
+            self.table.selection_set(self.table.get_children())
 
     def start_search(self):
         query = self.query.get().strip()
@@ -110,14 +116,14 @@ class SearchDialog(tk.Toplevel):
                 self.results = value
                 for index, video in enumerate(value):
                     self.table.insert('', 'end', iid=str(index), values=(video['title'], video['channel'], video['duration']))
-                self.status.set(f'{len(value)} results. Select a video to fill its URL.' if value else 'No videos found. Try different keywords.')
+                self.status.set(f'{len(value)} results. Hold Ctrl to select several, or Shift to select a range.' if value else 'No videos found. Try different keywords.')
         self.timer = self.after(100, self.poll)
 
     def use_selected(self):
         selected = self.table.selection()
         if self.searching or not selected:
             return
-        self.on_select(self.results[int(selected[0])]['url'])
+        self.on_select([dict(self.results[int(item)]) for item in self.table.get_children() if item in selected])
         self.close()
 
     def close(self):

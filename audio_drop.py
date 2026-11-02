@@ -55,11 +55,13 @@ class AudioDrop(tk.Tk):
         icon = Path(__file__).resolve().parent / 'assets' / 'audiodrop.ico'
         if icon.exists():
             self.iconbitmap(str(icon))
-        self.title('AudioDrop • YouTube to audio')
-        self.geometry('720x660')
-        self.minsize(640, 620)
+        self.title('AudioDrop')
+        self.geometry('760x780')
+        self.minsize(680, 720)
         self.configure(bg='#101827')
         self.busy = False
+        self.videos = []
+        self.current_download = ''
         self.events = queue.Queue()
         self.protocol('WM_DELETE_WINDOW', self.close)
         settings = {}
@@ -75,7 +77,7 @@ class AudioDrop(tk.Tk):
         self.fmt = tk.StringVar(value=settings.get('format', 'MP3'))
         if self.fmt.get() not in FORMATS:
             self.fmt.set('MP3')
-        self.status = tk.StringVar(value='Ready when you are.')
+        self.status = tk.StringVar(value='Ready.')
         style = ttk.Style(self)
         style.theme_use('clam')
         style.configure('TFrame', background='#101827')
@@ -87,7 +89,6 @@ class AudioDrop(tk.Tk):
         outer.pack(fill='both', expand=True)
         outer.columnconfigure(0, weight=1)
         ttk.Label(outer, text='AudioDrop', font=('Segoe UI', 27, 'bold')).grid(row=0, column=0, sticky='w')
-        ttk.Label(outer, text='A link. A format. Your audio.', foreground='#8fa7c5').grid(row=1, column=0, sticky='w', pady=(2, 24))
         ttk.Label(outer, text='YOUTUBE URL').grid(row=2, column=0, sticky='w')
         url_row = ttk.Frame(outer)
         url_row.grid(row=3, column=0, sticky='ew', pady=(7, 17))
@@ -96,6 +97,16 @@ class AudioDrop(tk.Tk):
         self.url_entry.grid(row=0, column=0, sticky='ew', padx=(0, 8))
         self.search_button = ttk.Button(url_row, text='Search YouTube', command=self.open_search)
         self.search_button.grid(row=0, column=1)
+        self.queue_table = ttk.Treeview(url_row, columns=('video',), show='headings', height=4, selectmode='extended')
+        self.queue_table.heading('video', text='Download queue (0)')
+        self.queue_table.column('video', width=480)
+        self.queue_table.grid(row=1, column=0, sticky='ew', pady=(10, 0))
+        queue_actions = ttk.Frame(url_row)
+        queue_actions.grid(row=1, column=1, sticky='n', pady=(10, 0))
+        self.remove_button = ttk.Button(queue_actions, text='Remove selected', command=self.remove_selected)
+        self.remove_button.pack(fill='x')
+        self.clear_button = ttk.Button(queue_actions, text='Clear queue', command=self.clear_queue)
+        self.clear_button.pack(fill='x', pady=(4, 0))
         options = ttk.Frame(outer)
         options.grid(row=4, column=0, sticky='ew')
         options.columnconfigure(1, weight=1)
@@ -107,7 +118,7 @@ class AudioDrop(tk.Tk):
         self.path_entry.grid(row=1, column=1, sticky='ew', padx=(16, 8))
         self.browse_button = ttk.Button(options, text='Browse…', command=self.browse)
         self.browse_button.grid(row=1, column=2)
-        ttk.Label(options, text='FILENAME (optional; leave blank to use the video title)').grid(row=2, column=0, columnspan=3, sticky='w', pady=(10, 4))
+        ttk.Label(options, text='FILENAME (optional, single video only; batches use video titles)').grid(row=2, column=0, columnspan=3, sticky='w', pady=(10, 4))
         self.name_entry = ttk.Entry(options, textvariable=self.filename)
         self.name_entry.grid(row=3, column=0, columnspan=3, sticky='ew')
         self.download = tk.Button(outer, text='↓  Download audio', command=self.start,
@@ -133,7 +144,43 @@ class AudioDrop(tk.Tk):
 
     def open_search(self):
         if not self.busy:
-            SearchDialog(self, self.url.set)
+            SearchDialog(self, self.add_videos)
+
+    def add_videos(self, videos):
+        if self.busy:
+            return
+        known = {video['url'] for video in self.videos}
+        for video in videos:
+            if video['url'] not in known:
+                self.videos.append(dict(video))
+                known.add(video['url'])
+        self.refresh_queue()
+
+    def refresh_queue(self):
+        for item in self.queue_table.get_children():
+            self.queue_table.delete(item)
+        for index, video in enumerate(self.videos):
+            self.queue_table.insert('', 'end', iid=str(index), values=(video['title'],))
+        self.queue_table.heading('video', text=f'Download queue ({len(self.videos)})')
+        if self.videos:
+            self.url.set(self.videos[0]['url'])
+        self.url_entry.configure(state='disabled' if self.videos else 'normal')
+        self.name_entry.configure(state='disabled' if len(self.videos) > 1 else 'normal')
+        self.download.configure(text=f'↓  Download {len(self.videos)} videos' if len(self.videos) > 1 else '↓  Download audio')
+
+    def remove_selected(self):
+        if not self.busy:
+            selected = set(self.queue_table.selection())
+            self.videos = [video for index, video in enumerate(self.videos) if str(index) not in selected]
+            if not self.videos:
+                self.url.set('')
+            self.refresh_queue()
+
+    def clear_queue(self):
+        if not self.busy:
+            self.videos = []
+            self.url.set('')
+            self.refresh_queue()
 
     def open_folder(self):
         folder = Path(self.folder.get()).expanduser()
@@ -146,14 +193,15 @@ class AudioDrop(tk.Tk):
         if self.busy:
             return
         url = self.url.get().strip()
-        if not validate_url(url):
+        videos = [dict(video) for video in self.videos] or [{'url': url, 'title': url}]
+        if not all(validate_url(video['url']) for video in videos):
             messagebox.showerror('Check the link', 'Paste a full YouTube video URL, starting with https://.')
             return
         if not self.folder.get().strip():
             messagebox.showerror('Choose a folder', 'Choose where to save your audio.')
             return
         try:
-            filename_template(self.filename.get())
+            filename_template(self.filename.get() if len(videos) == 1 else '')
         except ValueError as exc:
             messagebox.showerror('Check the filename', str(exc))
             return
@@ -169,16 +217,29 @@ class AudioDrop(tk.Tk):
             messagebox.showerror('Cannot use folder', str(exc))
             return
         self.busy = True
-        for widget in (self.download, self.url_entry, self.path_entry, self.browse_button, self.format_box, self.name_entry, self.search_button):
+        for widget in (self.download, self.url_entry, self.path_entry, self.browse_button, self.format_box, self.name_entry, self.search_button, self.remove_button, self.clear_button):
             widget.configure(state='disabled')
         self.log.configure(state='normal')
         self.log.delete('1.0', 'end')
         self.log.configure(state='disabled')
         self.status.set('Connecting to YouTube…')
         self.progress.start(12)
-        threading.Thread(target=self.worker, args=(url, download_options(folder, self.fmt.get(), self.filename.get())), daemon=True).start()
+        options = download_options(folder, self.fmt.get(), self.filename.get() if len(videos) == 1 else '')
+        threading.Thread(target=self.batch_worker, args=(videos, options), daemon=True).start()
 
-    def worker(self, url, options):
+    def batch_worker(self, videos, options):
+        succeeded = 0
+        failed = []
+        for index, video in enumerate(videos, 1):
+            self.events.put(('item', f'{index}/{len(videos)} · {video["title"]}'))
+            result = AudioDrop.worker(self, video['url'], dict(options), emit_done=False)
+            if result == 0:
+                succeeded += 1
+            else:
+                failed.append(video['title'])
+        self.events.put(('done', {'succeeded': succeeded, 'failed': failed}))
+
+    def worker(self, url, options, emit_done=True):
         try:
             from yt_dlp import YoutubeDL
             events = self.events
@@ -193,32 +254,43 @@ class AudioDrop(tk.Tk):
             options['logger'] = Logger()
             with YoutubeDL(options) as downloader:
                 result = downloader.download([url])
-            self.events.put(('done', result))
         except Exception as exc:
             self.events.put(('line', str(exc)))
-            self.events.put(('done', 1))
+            result = 1
+        if emit_done:
+            self.events.put(('done', result))
+        return result
 
     def poll(self):
         try:
             while True:
                 kind, value = self.events.get_nowait()
-                if kind == 'line':
+                if kind == 'item':
+                    self.current_download = value
+                    self.status.set(value)
+                    self.log.configure(state='normal')
+                    self.log.insert('end', '\n' + value + '\n')
+                    self.log.see('end')
+                    self.log.configure(state='disabled')
+                elif kind == 'line':
                     self.log.configure(state='normal')
                     self.log.insert('end', value + '\n')
                     self.log.see('end')
                     self.log.configure(state='disabled')
                     if value.startswith('[download]'):
-                        self.status.set(value.replace('[download]', '').strip())
+                        self.status.set(self.current_download + ' — ' + value.replace('[download]', '').strip())
                     elif value.startswith('[ExtractAudio]'):
-                        self.status.set('Converting audio…')
+                        self.status.set(self.current_download + ' — Converting audio…')
                 else:
                     self.busy = False
                     self.progress.stop()
-                    for widget in (self.download, self.url_entry, self.path_entry, self.browse_button, self.name_entry, self.search_button):
+                    for widget in (self.download, self.url_entry, self.path_entry, self.browse_button, self.name_entry, self.search_button, self.remove_button, self.clear_button):
                         widget.configure(state='normal')
                     self.format_box.configure(state='readonly')
-                    self.status.set('Saved! Open the download folder to find your audio.' if value == 0 else
-                                    'Download failed. See the details below; you can retry.')
+                    self.refresh_queue()
+                    failed = value['failed']
+                    self.status.set(f'Finished: {value["succeeded"]} completed, {len(failed)} failed. ' +
+                                    ('See the log for details.' if failed else 'Open the download folder to find your audio.'))
         except queue.Empty:
             pass
         self.after(100, self.poll)
