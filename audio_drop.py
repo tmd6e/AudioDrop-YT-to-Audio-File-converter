@@ -11,6 +11,7 @@ from tkinter import filedialog, messagebox, ttk
 from urllib.parse import urlparse
 from youtube_search import SearchDialog
 from runtime_paths import tool_path, runtime_options
+from updates import VERSION, latest_update, open_download
 
 BASE = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
 FORMATS = {'MP3': 'mp3', 'WAV': 'wav', 'FLAC': 'flac', 'M4A': 'm4a',
@@ -135,6 +136,18 @@ class AudioDrop(tk.Tk):
         ttk.Button(outer, text='Open download folder', command=self.open_folder).grid(row=9, column=0, sticky='e', pady=(12, 0))
         self.after(100, self.poll)
         self.url_entry.focus_set()
+        self.update_button = ttk.Button(outer, text='Check for updates', command=self.check_updates)
+        self.update_button.grid(row=9, column=0, sticky='w', pady=(12, 0))
+
+    def check_updates(self):
+        self.update_button.configure(state='disabled')
+        threading.Thread(target=self.update_worker, daemon=True).start()
+
+    def update_worker(self):
+        try:
+            self.events.put(('update', latest_update()))
+        except Exception as exc:
+            self.events.put(('update_error', str(exc)))
 
     def browse(self):
         initial = Path(self.folder.get()).expanduser()
@@ -265,7 +278,18 @@ class AudioDrop(tk.Tk):
         try:
             while True:
                 kind, value = self.events.get_nowait()
-                if kind == 'item':
+                if kind == 'update':
+                    self.update_button.configure(state='normal')
+                    version, available = value
+                    if available:
+                        if messagebox.askyesno('Update available', f'AudioDrop {version} is available (installed: {VERSION}). Open the download page? Download and run the Setup installer to update. Close AudioDrop before running setup.'):
+                            open_download()
+                    else:
+                        messagebox.showinfo('Updates', f'AudioDrop {VERSION} is up to date.')
+                elif kind == 'update_error':
+                    self.update_button.configure(state='normal')
+                    messagebox.showerror('Could not check for updates', 'Check your internet connection and try again.\n\n' + value)
+                elif kind == 'item':
                     self.current_download = value
                     self.status.set(value)
                     self.log.configure(state='normal')

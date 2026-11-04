@@ -67,6 +67,8 @@ WAV, FLAC, and ALAC cannot improve the quality of the original YouTube audio.
 
 ## Updating or removing AudioDrop
 
+Click **Check for updates** in AudioDrop. If a newer version is available, open its download page, download the **Setup** installer, close AudioDrop, and run setup. The check runs in the background and never installs software automatically.
+
 **Installed version:** download the newer setup file and run it. To uninstall, open Windows **Settings → Apps → Installed apps**, find **AudioDrop**, and choose **Uninstall**. Your downloaded audio is kept.
 
 **Portable version:** extract a newer ZIP to a new folder and open it there. Recreate shortcuts if you change its location. To remove it, delete the extracted app folder. Your downloaded audio is kept.

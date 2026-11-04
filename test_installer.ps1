@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 $testDirectory = Join-Path $PSScriptRoot 'build/installer-test'
 if (Test-Path -LiteralPath $testDirectory) { throw 'Installer test directory already exists; use a fresh build workspace.' }
-$installer = (Resolve-Path 'dist/AudioDrop-Setup-1.2.0.exe').Path
+$installer = (Resolve-Path 'dist/AudioDrop-Setup-1.3.0.exe').Path
 $install = Start-Process -FilePath $installer -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/NOICONS', '/TASKS=', ('/DIR="' + $testDirectory + '"')) -WindowStyle Hidden -Wait -PassThru
 if ($install.ExitCode -ne 0) { throw 'Installer failed' }
 try {
