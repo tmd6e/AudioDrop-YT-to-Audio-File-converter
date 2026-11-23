@@ -2,7 +2,7 @@ import json
 import urllib.request
 import webbrowser
 
-VERSION = '1.3.0'
+VERSION = '1.4.0'
 LATEST = 'https://api.github.com/repos/tmd6e/AudioDrop-YT-to-Audio-File-converter/releases/latest'
 
 def latest_update():

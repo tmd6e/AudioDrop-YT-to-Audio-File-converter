@@ -1,4 +1,4 @@
-#define AppVersion "1.3.0"
+#define AppVersion "1.4.0"
 [Setup]
 AppId=AudioDrop.Desktop
 AppName=AudioDrop

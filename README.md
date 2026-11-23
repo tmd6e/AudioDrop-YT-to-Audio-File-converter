@@ -35,7 +35,7 @@ Keep all files in that folder together, including `_internal`. Do not run from i
 4. **Name it if you want.** Enter a filename, or leave it blank to use the video's title. The app adds the file extension.
 5. Click **Download audio** and wait for the saved message. Click **Open download folder** to find your file.
 
-The app remembers your folder and format. Adding search results does not download anything until you click the download button. Playlist links download one video.
+The app remembers your folder and format. Adding search results does not download anything until you click the download button. Playlist links download their accessible videos as a batch.
 
 ### Download several videos at once
 
@@ -86,3 +86,9 @@ Still stuck? [Report a problem](https://github.com/tmd6e/AudioDrop-YT-to-Audio-F
 ## For developers
 
 See [DEVELOPING.md](DEVELOPING.md) for source setup, tests, builds, and release steps. The app uses the repository's GPL v2 license. Bundled components retain their own licenses; see [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
+
+### Playlists and expanded search
+
+Paste a playlist URL and click Download audio to download its accessible videos into the selected folder. A video URL containing a playlist also downloads that playlist. Playlist downloads use individual video titles and IDs, ignoring the custom filename.
+
+In Search YouTube, choose Videos or Playlists and request 25, 50, or 100 results. The default is 50. Select playlists and add them to the queue alongside individual videos. Playlists expand when downloading begins. Duplicate videos across the batch are downloaded once. Unavailable entries may be skipped by YouTube extraction.

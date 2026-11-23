@@ -5,27 +5,50 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 from runtime_paths import runtime_options
+from urllib.parse import urlencode, urlparse, parse_qs
 
 
-def search_videos(query):
+def playlist_url(url):
+    identifier = parse_qs(urlparse(url).query).get('list', [''])[0]
+    return 'https://www.youtube.com/playlist?' + urlencode({'list': identifier}) if identifier else None
+
+
+def playlist_videos(url):
+    from yt_dlp import YoutubeDL
+    with YoutubeDL({**runtime_options(), 'quiet': True, 'extract_flat': True,
+                    'skip_download': True, 'ignoreerrors': True, 'socket_timeout': 20}) as downloader:
+        data = downloader.extract_info(playlist_url(url) or url, download=False)
+        entries = list((data or {}).get('entries') or [])
+    return [{'title': entry.get('title') or entry['id'],
+             'url': 'https://www.youtube.com/watch?v=' + entry['id']}
+            for entry in entries if entry and re.fullmatch(r'[A-Za-z0-9_-]{11}', str(entry.get('id', '')))]
+
+
+def search_videos(query, kind='Videos', limit=50):
     from yt_dlp import YoutubeDL
     query = query.strip()
     if not query:
         return []
     with YoutubeDL({**runtime_options(), 'quiet': True, 'no_warnings': True, 'extract_flat': True,
                     'skip_download': True, 'socket_timeout': 20, 'retries': 1,
-                    'extractor_retries': 1}) as downloader:
-        data = downloader.extract_info('ytsearch10:' + query, download=False)
+                    'extractor_retries': 1, 'playlistend': limit}) as downloader:
+        target = ('https://www.youtube.com/results?' + urlencode({'search_query': query, 'sp': 'EgIQAw=='})) if kind == 'Playlists' else f'ytsearch{limit}:' + query
+        data = downloader.extract_info(target, download=False)
     results = []
     for entry in (data or {}).get('entries', []) or []:
-        if not entry or not re.fullmatch(r'[A-Za-z0-9_-]{11}', str(entry.get('id', ''))):
+        if not entry:
+            continue
+        playlist = playlist_url(entry.get('url') or entry.get('webpage_url') or '')
+        if kind == 'Playlists' and not playlist:
+            continue
+        if kind != 'Playlists' and not re.fullmatch(r'[A-Za-z0-9_-]{11}', str(entry.get('id', ''))):
             continue
         duration = entry.get('duration')
         duration = int(duration) if isinstance(duration, (int, float)) and duration >= 0 else None
         results.append({'title': entry.get('title') or 'Untitled video',
                         'channel': entry.get('channel') or entry.get('uploader') or 'Unknown channel',
-                        'duration': f'{duration // 60}:{duration % 60:02}' if duration is not None else '—',
-                        'url': 'https://www.youtube.com/watch?v=' + entry['id']})
+                        'duration': 'Playlist' if playlist else (f'{duration // 60}:{duration % 60:02}' if duration is not None else '—'),
+                        'url': playlist or 'https://www.youtube.com/watch?v=' + entry['id']})
     return results
 
 
@@ -42,6 +65,8 @@ class SearchDialog(tk.Toplevel):
         self.results = []
         self.searching = False
         self.query = tk.StringVar()
+        self.kind = tk.StringVar(value='Videos')
+        self.limit = tk.StringVar(value='50')
         self.status = tk.StringVar(value='Search by video title, artist, or keywords.')
         frame = ttk.Frame(self, padding=20)
         frame.pack(fill='both', expand=True)
@@ -52,6 +77,11 @@ class SearchDialog(tk.Toplevel):
         self.entry.bind('<Return>', lambda event: self.start_search())
         self.search_button = ttk.Button(frame, text='Search', command=self.start_search)
         self.search_button.grid(row=0, column=1)
+        filters = ttk.Frame(frame)
+        filters.grid(row=4, column=0, columnspan=2, sticky='w', pady=(10, 0))
+        ttk.Combobox(filters, textvariable=self.kind, values=['Videos', 'Playlists'], state='readonly', width=12).pack(side='left')
+        ttk.Label(filters, text=' Results ').pack(side='left')
+        ttk.Combobox(filters, textvariable=self.limit, values=['25', '50', '100'], state='readonly', width=5).pack(side='left')
         ttk.Label(frame, textvariable=self.status, wraplength=680).grid(row=1, column=0, columnspan=2, sticky='w', pady=12)
         self.table = ttk.Treeview(frame, columns=('title', 'channel', 'duration'), show='headings', selectmode='extended')
         for key, label, width in [('title', 'Video', 360), ('channel', 'Channel', 180), ('duration', 'Length', 65)]:
@@ -94,11 +124,11 @@ class SearchDialog(tk.Toplevel):
         self.search_button.configure(state='disabled')
         self.use_button.configure(state='disabled')
         self.status.set('Searching YouTube…')
-        threading.Thread(target=self.worker, args=(query,), daemon=True).start()
+        threading.Thread(target=self.worker, args=(query, self.kind.get(), int(self.limit.get())), daemon=True).start()
 
-    def worker(self, query):
+    def worker(self, query, kind='Videos', limit=50):
         try:
-            self.events.put(('results', search_videos(query)))
+            self.events.put(('results', search_videos(query, kind, limit)))
         except Exception as exc:
             self.events.put(('error', str(exc)))
 

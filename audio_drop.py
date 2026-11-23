@@ -9,7 +9,7 @@ import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from urllib.parse import urlparse
-from youtube_search import SearchDialog
+from youtube_search import SearchDialog, playlist_url, playlist_videos
 from runtime_paths import tool_path, runtime_options
 from updates import VERSION, latest_update, open_download
 
@@ -178,7 +178,7 @@ class AudioDrop(tk.Tk):
         if self.videos:
             self.url.set(self.videos[0]['url'])
         self.url_entry.configure(state='disabled' if self.videos else 'normal')
-        self.name_entry.configure(state='disabled' if len(self.videos) > 1 else 'normal')
+        self.name_entry.configure(state='disabled' if len(self.videos) > 1 or any(playlist_url(video['url']) for video in self.videos) else 'normal')
         self.download.configure(text=f'↓  Download {len(self.videos)} videos' if len(self.videos) > 1 else '↓  Download audio')
 
     def remove_selected(self):
@@ -214,7 +214,7 @@ class AudioDrop(tk.Tk):
             messagebox.showerror('Choose a folder', 'Choose where to save your audio.')
             return
         try:
-            filename_template(self.filename.get() if len(videos) == 1 else '')
+            filename_template(self.filename.get() if len(videos) == 1 and not playlist_url(videos[0]['url']) else '')
         except ValueError as exc:
             messagebox.showerror('Check the filename', str(exc))
             return
@@ -237,12 +237,31 @@ class AudioDrop(tk.Tk):
         self.log.configure(state='disabled')
         self.status.set('Connecting to YouTube…')
         self.progress.start(12)
-        options = download_options(folder, self.fmt.get(), self.filename.get() if len(videos) == 1 else '')
+        options = download_options(folder, self.fmt.get(), self.filename.get() if len(videos) == 1 and not playlist_url(videos[0]['url']) else '')
         threading.Thread(target=self.batch_worker, args=(videos, options), daemon=True).start()
 
     def batch_worker(self, videos, options):
         succeeded = 0
         failed = []
+        expanded = []
+        known = set()
+        for video in videos:
+            try:
+                if playlist_url(video['url']):
+                    self.events.put(('item', 'Loading playlist · ' + video['title']))
+                    entries = playlist_videos(video['url'])
+                    if not entries:
+                        raise ValueError('Playlist contains no accessible videos.')
+                else:
+                    entries = [video]
+                for entry in entries:
+                    if entry['url'] not in known:
+                        known.add(entry['url'])
+                        expanded.append(entry)
+            except Exception as exc:
+                failed.append(video['title'])
+                self.events.put(('line', f'Playlist failed: {video["title"]} — {exc}'))
+        videos = expanded
         for index, video in enumerate(videos, 1):
             self.events.put(('item', f'{index}/{len(videos)} · {video["title"]}'))
             result = AudioDrop.worker(self, video['url'], dict(options), emit_done=False)

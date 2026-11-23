@@ -12,7 +12,7 @@ class SearchTests(unittest.TestCase):
                 {'id': 'abcdefghijk', 'title': 'A song', 'channel': 'Artist', 'duration': 125},
                 {'id': 'invalid'}, {'id': '12345678901'}]}
             results = search_videos('  some music  ')
-            downloader.extract_info.assert_called_once_with('ytsearch10:some music', download=False)
+            downloader.extract_info.assert_called_once_with('ytsearch50:some music', download=False)
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0]['url'], 'https://www.youtube.com/watch?v=abcdefghijk')
         self.assertEqual(results[0]['duration'], '2:05')
